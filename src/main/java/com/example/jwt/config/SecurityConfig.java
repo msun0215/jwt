@@ -1,5 +1,6 @@
 package com.example.jwt.config;
 
+import com.example.jwt.filter.Filter3;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +13,10 @@ import org.springframework.security.config.annotation.web.configurers.CsrfConfig
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
+
+import com.example.jwt.filter.Filter1;
 
 /*
 @Configuration
@@ -59,6 +63,10 @@ public class SecurityConfig{
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        //http.addFilter(new Filter1());
+        http.addFilterBefore(new Filter3(), BasicAuthenticationFilter.class);  // 기본적으로 이렇게 건다
+        // 사용자가 임의로 지정한 Filter는 springSecurityFilterChain에 등록이 되지 않는다.(타입이 Filter이기 때문)
+        // 따라서 해당 Filter를 사용하기 위해서는 addFilterAfter 또는 addFilterBefore를 통해서 연계를 시켜줘야 한다.
         http.csrf(CsrfConfigurer::disable);
         http.sessionManagement(httpSecuritySessionManagementConfigurer -> {
             httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS); // Session 사용 X

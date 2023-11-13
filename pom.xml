@@ -64,6 +64,13 @@
             <version>4.4.0</version>
         </dependency>
 
+
+        <!-- org.springframework.security:spring-security-web:6.1.5-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>6.1.5</version>
+        </dependency>
     </dependencies>
 
     <build>
