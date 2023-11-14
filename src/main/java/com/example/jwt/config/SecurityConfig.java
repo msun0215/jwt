@@ -1,6 +1,7 @@
 package com.example.jwt.config;
 
 import com.example.jwt.config.jwt.JWTAuthenticationFilter;
+import com.example.jwt.config.jwt.JWTAuthorizationFilter;
 import com.example.jwt.filter.Filter3;
 import com.example.jwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
@@ -89,43 +89,17 @@ public class SecurityConfig {
                 // (httpBearer 방식을 사용한다고 해서 Token이 노출이 안된다는 것은 아님.)
                 // 이러한 방식이 JWT 인증 방식이다.
                 // 즉, httpBearer방식을 사용하기 위해서 Session, formLogin, HttpBasic을 다 비활성화 시킴.
-        ).apply(new MyCustomDs1())
-                .authorizeHttpRequests(authorize-> {   // 권한 부여
-                    authorize
-                            .requestMatchers("/api/v1/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-                            .requestMatchers("/api/v1/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-                            .requestMatchers(("/api/v1/admin/**")).hasAnyRole("hasRole('ROLE_ADMIN')")
-                            .anyRequest().permitAll();
-                });
+        ).apply(new MyCustomDs1());
+        http.authorizeHttpRequests(authorize-> {     // 권한 부여
 
-
-
-        /*
-        http.authorizeHttpRequests(authorize ->
-                authorize
-                        .requestMatchers("/user/**").authenticated()    // 인증만 되면 들어갈 수 있는 주소
-                        .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-
-                        .anyRequest().permitAll()
-        ).formLogin(formLogin->{
-            formLogin.loginPage("/loginForm")
-                    .loginProcessingUrl("/login")
-                    // /login 주소가 호출이 되면 Security가 낚아채서 대신 로그인을 진행해준다.
-                    .defaultSuccessUrl("/");
-        }).oauth2Login(httpSecurityOAuth2LoginConfigurer -> {
-            httpSecurityOAuth2LoginConfigurer.loginPage("/loginForm")
-                    // google login이 완료된 뒤의 후처리가 필요함
-                    // 1. 코드받기(인증)-> 2. 엑세스토큰(권한)->
-                    // 3. 사용자 프로필 정보를 가져오고-> 4-1. 그 정보를 토대로 회원가입을 자동으로 진행시키기도 함
-                    // 4-2. (이메일, 전화번호, 이름, 아이디)쇼핑몰 -> (집주소)
-                    //      백화점몰 -> (vip등급/일반등급)
-                    // Tip. 코드 X, (Access Token+사용자 프로필 정보 O)
-                    .userInfoEndpoint(userInfoEndpointConfig -> {
-                        userInfoEndpointConfig.userService(principalOauth2UserService);
-                    });
+            authorize
+                    .requestMatchers("/api/v1/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+                    .requestMatchers("/api/v1/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+                    .requestMatchers(("/api/v1/admin/**")).hasAnyRole("hasRole('ROLE_ADMIN')")
+                    .anyRequest().permitAll();
         });
-        */
+
+
         // /user, /manager, /admin으로 들어가도 /loginForm으로 접근하도록
         return http.build();
     }
@@ -136,7 +110,7 @@ public class SecurityConfig {
             AuthenticationManager authenticationManager=http.getSharedObject(AuthenticationManager.class);
             http.addFilter(corsConfig.corsFilter())
                     .addFilter(new JWTAuthenticationFilter(authenticationManager))
-                            .addFilter(new JWTAuthenticationFilter(authenticationManager,userRepository));
+                            .addFilter(new JWTAuthorizationFilter(authenticationManager,userRepository));
 
         }
     }
