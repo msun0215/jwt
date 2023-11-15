@@ -21,7 +21,7 @@ public class RestAPIController {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     // 모든 사람이 접근 가능함
-    @GetMapping("home")    // index route
+    @GetMapping("/home")    // index route
     public String home(){
         return "<h1>home</h1>";
     }
@@ -32,7 +32,7 @@ public class RestAPIController {
 
 
     // User or Manager or Admin able to access
-    @GetMapping("/api/v1/user")
+    @GetMapping("/user")
     public String user(Authentication authentication){
         PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
         System.out.println("principal : "+principal.getUser().getId());
@@ -43,13 +43,13 @@ public class RestAPIController {
     }
 
     // Manager or Admin able to access
-    @GetMapping("/api/v1/manager/reports")
+    @GetMapping("/manager/reports")
     public String reports(){
         return "<h1>reports</h1>";
     }
 
     // Admin able to access
-    @GetMapping("/api/v1/admin")
+    @GetMapping("/admin")
     public List<User> admin(){
         return userRepository.findAll();
     }
