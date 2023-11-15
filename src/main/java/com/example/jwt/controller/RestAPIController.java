@@ -21,7 +21,7 @@ public class RestAPIController {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     // 모든 사람이 접근 가능함
-    @GetMapping("/home")    // index route
+    @GetMapping("home")    // index route
     public String home(){
         return "<h1>home</h1>";
     }

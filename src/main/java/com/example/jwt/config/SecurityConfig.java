@@ -97,26 +97,28 @@ public class SecurityConfig {
          */
 
         AuthenticationManager authenticationManager=http.getSharedObject(AuthenticationManager.class);
+        System.out.println("authenticationManager1 : " + authenticationManager);
 
-        return http.csrf(CsrfConfigurer::disable)
+        http.csrf(cs-> cs.disable())
                 .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .formLogin(f->f.disable())
                                 .httpBasic(h->h.disable())
-                                        //.apply(new MyCustomDs1())   // custom Filter
-                .addFilter(new JWTAuthenticationFilter(authenticationManager))
-                .addFilter(new JWTAuthorizationFilter(authenticationManager, userRepository))
-                .authorizeHttpRequests(authorize-> {     // 권한 부여
+                                        .apply(new MyCustomDs1());   // custom Filter
+                //.addFilter(new JWTAuthenticationFilter(authenticationManager))
+                //.addFilter(new JWTAuthorizationFilter(authenticationManager, userRepository))
+        http.authorizeHttpRequests(authorize-> {     // 권한 부여
                     // authorizeRequests가 deprecated됨에 따라 authorizeHttpRequests 사용 권장
                     authorize
                         .requestMatchers("/api/v1/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
                         .requestMatchers("/api/v1/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
                         .requestMatchers(("/api/v1/admin/**")).hasAnyRole("hasRole('ROLE_ADMIN')")
                         .anyRequest().permitAll();
-                }).build();
+                });
 
+        System.out.println("authenticationManager2 : " + authenticationManager);
 
         // /user, /manager, /admin으로 들어가도 /loginForm으로 접근하도록
-        //return http.build();
+        return http.build();
     }
 
     public class MyCustomDs1 extends AbstractHttpConfigurer<MyCustomDs1, HttpSecurity>{ // custom Filter
@@ -126,6 +128,7 @@ public class SecurityConfig {
             http.addFilter(corsConfig.corsFilter())
                     .addFilter(new JWTAuthenticationFilter(authenticationManager))
                             .addFilter(new JWTAuthorizationFilter(authenticationManager,userRepository));
+            System.out.println("authenticationManager3 : " + authenticationManager);
         }
     }
     /*
