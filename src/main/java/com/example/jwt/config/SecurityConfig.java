@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 //import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdaper;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -53,8 +54,8 @@ WebSecurityConfigurerAdapter deprecated 된 설정을 제거해야 합니다.
 
 @Configuration
 @EnableWebSecurity  // Spring Security Filter가 Spring FilterChain에 등록이 된다.
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
-@RequiredArgsConstructor
+//@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+//@RequiredArgsConstructor
 // Secured Annotation 활성화, preAuthorize Annotation 활성화
 public class SecurityConfig {
 
@@ -62,8 +63,10 @@ public class SecurityConfig {
 //    public BCryptPasswordEncoder encodePwd(){
 //        return new BCryptPasswordEncoder();
 //    }
+
     // Circular Dependency Injection 해결을 위해서 encodePwd() 생성자 코드를 Application.java로 옮김
-    private final CorsFilter corsFilter;
+
+    //private final CorsFilter corsFilter;
 
     @Autowired
     private CorsConfig corsConfig;
@@ -73,8 +76,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        /*
         //http.addFilter(new Filter1());
-        http.addFilterBefore(new Filter3(), BasicAuthenticationFilter.class);  // 기본적으로 이렇게 건다
+        //http.addFilterBefore(new Filter3(), BasicAuthenticationFilter.class);  // 기본적으로 이렇게 건다
         // 사용자가 임의로 지정한 Filter는 springSecurityFilterChain에 등록이 되지 않는다.(타입이 Filter이기 때문)
         // 따라서 해당 Filter를 사용하기 위해서는 addFilterAfter 또는 addFilterBefore를 통해서 연계를 시켜줘야 한다.
         http.csrf(CsrfConfigurer::disable);
@@ -90,18 +94,29 @@ public class SecurityConfig {
                 // 이러한 방식이 JWT 인증 방식이다.
                 // 즉, httpBearer방식을 사용하기 위해서 Session, formLogin, HttpBasic을 다 비활성화 시킴.
         ).apply(new MyCustomDs1());
-        http.authorizeHttpRequests(authorize-> {     // 권한 부여
+         */
 
-            authorize
-                    .requestMatchers("/api/v1/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-                    .requestMatchers("/api/v1/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-                    .requestMatchers(("/api/v1/admin/**")).hasAnyRole("hasRole('ROLE_ADMIN')")
-                    .anyRequest().permitAll();
-        });
+        AuthenticationManager authenticationManager=http.getSharedObject(AuthenticationManager.class);
+
+        return http.csrf(CsrfConfigurer::disable)
+                .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .formLogin(f->f.disable())
+                                .httpBasic(h->h.disable())
+                                        //.apply(new MyCustomDs1())   // custom Filter
+                .addFilter(new JWTAuthenticationFilter(authenticationManager))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager, userRepository))
+                .authorizeHttpRequests(authorize-> {     // 권한 부여
+                    // authorizeRequests가 deprecated됨에 따라 authorizeHttpRequests 사용 권장
+                    authorize
+                        .requestMatchers("/api/v1/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+                        .requestMatchers("/api/v1/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+                        .requestMatchers(("/api/v1/admin/**")).hasAnyRole("hasRole('ROLE_ADMIN')")
+                        .anyRequest().permitAll();
+                }).build();
 
 
         // /user, /manager, /admin으로 들어가도 /loginForm으로 접근하도록
-        return http.build();
+        //return http.build();
     }
 
     public class MyCustomDs1 extends AbstractHttpConfigurer<MyCustomDs1, HttpSecurity>{ // custom Filter
@@ -111,7 +126,6 @@ public class SecurityConfig {
             http.addFilter(corsConfig.corsFilter())
                     .addFilter(new JWTAuthenticationFilter(authenticationManager))
                             .addFilter(new JWTAuthorizationFilter(authenticationManager,userRepository));
-
         }
     }
     /*

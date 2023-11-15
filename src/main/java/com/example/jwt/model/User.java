@@ -20,6 +20,8 @@ public class User {
     private String password;
     private String roles;   // USER, ADMIN
 
+
+    // ENUm으로 안하고 ,로 split하여 ROLE을 입력 -> 그걸 parsing
     public List<String> getRoleList(){
         if(this.roles.length()>0){
             return Arrays.asList(this.roles.split(","));
