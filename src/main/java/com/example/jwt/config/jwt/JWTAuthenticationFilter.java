@@ -94,15 +94,16 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
 
         PrincipalDetails principalDetails=(PrincipalDetails)authResult.getPrincipal();
+        System.out.println("Authentication이 실행됨 : 인증이 완료되었다는 뜻임");
 
         // RSA방식이 아닌, Hash암호방식
         String jwtToken = JWT.create()
-                .withSubject(principalDetails.getUsername())
-                        .withExpiresAt(new Date(System.currentTimeMillis()+JWTProperties.EXPIRATION_TIME))  // Token 만료 시간
-                                .withClaim("id", principalDetails.getUser().getId())
-                                        .withClaim("username", principalDetails.getUser().getUsername())
-                                                .sign(Algorithm.HMAC512(JWTProperties.SECRET));  // HMAC은 SECRET KEY를 필요로 함
-        response.addHeader("Authorization", "Bearer"+jwtToken);
+                .withSubject(principalDetails.getUsername())    // token 별명 느낌?
+                        .withExpiresAt(new Date(System.currentTimeMillis()+JWTProperties.EXPIRATION_TIME))  // Token 만료 시간 -> 현재시간 + 만료시간
+                                .withClaim("id", principalDetails.getUser().getId())    // 비공개 Claim -> 넣고싶은거 아무거나 넣으면 됨
+                                        .withClaim("username", principalDetails.getUser().getUsername())    // 비공개 Claim
+                                                .sign(Algorithm.HMAC512(JWTProperties.SECRET));  // HMAC512는 SECRET KEY를 필요로 함
+        response.addHeader(JWTProperties.HEADER_STRING, "Bearer "+jwtToken);
     }
 
 
