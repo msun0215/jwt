@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-//import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdaper;
+//import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -55,7 +55,7 @@ WebSecurityConfigurerAdapter deprecated 된 설정을 제거해야 합니다.
 @Configuration
 @EnableWebSecurity  // Spring Security Filter가 Spring FilterChain에 등록이 된다.
 //@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 // Secured Annotation 활성화, preAuthorize Annotation 활성화
 public class SecurityConfig {
 
@@ -64,9 +64,14 @@ public class SecurityConfig {
 //        return new BCryptPasswordEncoder();
 //    }
 
+    /*
+    패스워드를 암호화해주는 메소드로, 8바이트 이상의 무작위로 생성된 솔트와 결합된 SHA-1 이상의 해시를 적용한다.
+    java.lang.CharSequence 타입의 패스워드를 매개변수로 입력해주면 암호화 된 패스워드를 String 타입으로 반환해준다.
+    해시시킬 때 무작위로 생성한 salt가 포함되므로 같은 비밀번호를 인코딩해도 매번 다른 결과값이 반환된다.
+     */
     // Circular Dependency Injection 해결을 위해서 encodePwd() 생성자 코드를 Application.java로 옮김
 
-    //private final CorsFilter corsFilter;
+    private final CorsFilter corsFilter;
 
     @Autowired
     private CorsConfig corsConfig;
@@ -95,10 +100,7 @@ public class SecurityConfig {
                 // 즉, httpBearer방식을 사용하기 위해서 Session, formLogin, HttpBasic을 다 비활성화 시킴.
         ).apply(new MyCustomDs1());
          */
-
-        AuthenticationManager authenticationManager=http.getSharedObject(AuthenticationManager.class);
-        System.out.println("authenticationManager1 : " + authenticationManager);
-
+        http.addFilterBefore(new Filter3(), BasicAuthenticationFilter.class);  // 기본적으로 이렇게 건다
         http.csrf(cs-> cs.disable())
                 .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .formLogin(f->f.disable())
@@ -112,10 +114,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
                         .requestMatchers("/api/v1/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
                         .requestMatchers(("/api/v1/admin/**")).hasAnyRole("hasRole('ROLE_ADMIN')")
-                        .anyRequest().permitAll();
+                        .anyRequest().permitAll();  // 이외의 요청은 모두 허용함
                 });
 
-        System.out.println("authenticationManager2 : " + authenticationManager);
+        /* Spring Security 사용 시
+        http.formLogin(f->f{
+            f.loginProcessingUrl("/login");     // 로그인 url 설정
+        });
+         */
 
         // /user, /manager, /admin으로 들어가도 /loginForm으로 접근하도록
         return http.build();
@@ -126,9 +132,9 @@ public class SecurityConfig {
         public void configure(HttpSecurity http) throws Exception {
             AuthenticationManager authenticationManager=http.getSharedObject(AuthenticationManager.class);
             http.addFilter(corsConfig.corsFilter())
-                    .addFilter(new JWTAuthenticationFilter(authenticationManager))
+                    .addFilter(new JWTAuthenticationFilter(authenticationManager))  // AuthenticationManager를 Parameter로 넘겨줘야 함(로그인을 진행하는 데이터이기 때문)
                             .addFilter(new JWTAuthorizationFilter(authenticationManager,userRepository));
-            System.out.println("authenticationManager3 : " + authenticationManager);
+            System.out.println("authenticationManager3 : " + authenticationManager);    // log
         }
     }
     /*

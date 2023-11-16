@@ -23,7 +23,9 @@ public class Filter3 implements Filter {
         // Request할때마다 header에 Authorization에 value 값으로 Token을 받음
         // 그 때 Token이 넘어오면 이 Token이 내가 만든 Token이 맞는지만 검증하면 된다.(RSA, HS256 방식)
         if(req.getMethod().equals("POST")){
-            String headerAuth = req.getHeader(JWTProperties.HEADER_STRING);
+            String headerAuth = req.getHeader(JWTProperties.HEADER_STRING);  // Authorization
+
+            System.out.println("POST 요청됨");
             System.out.println(headerAuth);
 
             if(headerAuth.equals(JWTProperties.SECRET)){      // Token의 Authorization이 'cors'라는 이름으로 넘어온다면
