@@ -23,7 +23,9 @@ import java.io.IOException;
 // 만약에 권한이 인증이 필요한 주소가 아니라면 이 filter를 타지 않는다.
 // 인가
 
-public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
+public class
+
+JWTAuthorizationFilter extends BasicAuthenticationFilter {
     private UserRepository userRepository;
 
     public JWTAuthorizationFilter(AuthenticationManager authenticationManager, UserRepository userRepository){
@@ -54,7 +56,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
         // 서명이 정상적으로 동작했을 경우
         if(username!=null){
             User userEntity = userRepository.findByUsername(username);
-            System.out.println("Username 정상 : "  +userEntity.getUsername());
+            System.out.println("UserEntity 정상 : "  +userEntity);
             PrincipalDetails principalDetails = new PrincipalDetails(userEntity);
             System.out.println("Username : "+userEntity.getUsername());
 

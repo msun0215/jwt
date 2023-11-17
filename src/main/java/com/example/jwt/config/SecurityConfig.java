@@ -105,10 +105,13 @@ public class SecurityConfig {
                 .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .formLogin(f->f.disable())
                                 .httpBasic(h->h.disable())
-                                        .apply(new MyCustomDs1());   // custom Filter
+                                        .apply(new MyCustomDs1());
+                //.authorizeHttpRequests(authorize->{
+
+                //});   // custom Filter
                 //.addFilter(new JWTAuthenticationFilter(authenticationManager))
                 //.addFilter(new JWTAuthorizationFilter(authenticationManager, userRepository))
-        http.authorizeHttpRequests(authorize-> {     // 권한 부여
+        http.authorizeRequests(authorize-> {     // 권한 부여
                     // authorizeRequests가 deprecated됨에 따라 authorizeHttpRequests 사용 권장
                     authorize
 //                            .requestMatchers("/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
@@ -117,6 +120,7 @@ public class SecurityConfig {
                             .requestMatchers("/user/**").hasAnyRole("USER","MANAGER","ADMIN")
                             .requestMatchers("/manager/**").hasAnyRole("MANAGER","ADMIN")
                             .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+                            // hasAnyRole() 메소드는 자동으로 앞에 ROLE_을 추가해서 체크해준다
 
 //                            .requestMatchers("/user/**").hasAnyAuthority("USER","MANAGER","ADMIN")
 //                            .requestMatchers("/user/**").authenticated()
