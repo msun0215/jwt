@@ -68,7 +68,7 @@ import java.util.List;
 public class RestAPIController{
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    @GetMapping("home")
+    @PostMapping("home")
     public String home(){return "<h1>home</h1>";}
 
     @PostMapping("token")
@@ -81,4 +81,26 @@ public class RestAPIController{
         userRepository.save(user);
         return "회원가입 완료";
     }
+
+    @PostMapping("user")
+    public String user(Authentication authentication){
+        PrincipalDetails principalDetails=(PrincipalDetails) authentication.getPrincipal();
+        System.out.println("UserId : "+principalDetails.getUser().getId());
+        System.out.println("Username : "+principalDetails.getUser().getUsername());
+        System.out.println("Password : "+principalDetails.getUser().getPassword());
+        return "<h1>user</h1>";
+    }
+
+    // 매니저 혹은 어드민이 접근 가능
+    @GetMapping("manager/reports")
+    public String reports() {
+        return "<h1>reports</h1>";
+    }
+
+    // 어드민이 접근 가능
+    @GetMapping("admin/users")
+    public List<User> users() {
+        return userRepository.findAll();
+    }
+
 }

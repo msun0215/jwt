@@ -26,7 +26,7 @@ public class Filter3 implements Filter {
             String headerAuth = req.getHeader(JWTProperties.HEADER_STRING);  // Authorization
 
             System.out.println("POST 요청됨");
-            System.out.println(headerAuth);
+            System.out.println("HeaderAuth : "+headerAuth);
 
             if(headerAuth.equals(JWTProperties.SECRET)){      // Token의 Authorization이 'cors'라는 이름으로 넘어온다면
                 filterChain.doFilter(req, res);

@@ -100,7 +100,7 @@ public class SecurityConfig {
                 // 즉, httpBearer방식을 사용하기 위해서 Session, formLogin, HttpBasic을 다 비활성화 시킴.
         ).apply(new MyCustomDs1());
          */
-        http.addFilterBefore(new Filter3(), BasicAuthenticationFilter.class);  // 기본적으로 이렇게 건다
+        //http.addFilterBefore(new Filter3(), BasicAuthenticationFilter.class);  // 기본적으로 이렇게 건다
         http.csrf(cs-> cs.disable())
                 .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .formLogin(f->f.disable())
@@ -111,9 +111,18 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authorize-> {     // 권한 부여
                     // authorizeRequests가 deprecated됨에 따라 authorizeHttpRequests 사용 권장
                     authorize
-                        .requestMatchers("/api/v1/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-                        .requestMatchers("/api/v1/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-                        .requestMatchers(("/api/v1/admin/**")).hasAnyRole("hasRole('ROLE_ADMIN')")
+//                            .requestMatchers("/user/**").hasAnyRole("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+//                            .requestMatchers("/manager/**").hasAnyRole("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+//                            .requestMatchers("/admin/**").hasAnyRole("hasRole('ROLE_ADMIN')")
+                            .requestMatchers("/user/**").hasAnyRole("USER","MANAGER","ADMIN")
+                            .requestMatchers("/manager/**").hasAnyRole("MANAGER","ADMIN")
+                            .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+
+//                            .requestMatchers("/user/**").hasAnyAuthority("USER","MANAGER","ADMIN")
+//                            .requestMatchers("/user/**").authenticated()
+//                            .requestMatchers("/manager/**").hasAnyAuthority("MANAGER", "ADMIN")
+//                            //.requestMatchers("/manager/**").access("hasAuthority('ROLE_ADMIN')")
+//                            .requestMatchers(("/admin/**")).hasAuthority("ADMIN")
                         .anyRequest().permitAll();  // 이외의 요청은 모두 허용함
                 });
 
